@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ScamShield — Is this message a scam?</title>
+<meta name="description" content="Paste a suspicious text, email or link. Get a plain-English risk verdict in seconds. Free, private — your message is never stored.">
+<style>
+  :root{
+    --bg:#070b14; --panel:#0e1524; --panel2:#121c31; --line:#22304d;
+    --text:#eef2fb; --muted:#9db0cf; --accent:#38bdf8; --accent2:#818cf8;
+    --safe:#34d399; --caution:#fbbf24; --likely:#fb923c; --high:#f87171;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.55;overflow-x:hidden}
+  .orbs{position:fixed;inset:0;z-index:-1;background:
+    radial-gradient(600px 400px at 15% -5%,rgba(56,189,248,.16),transparent 60%),
+    radial-gradient(700px 500px at 90% 10%,rgba(129,140,248,.14),transparent 60%),
+    radial-gradient(500px 500px at 50% 110%,rgba(52,211,153,.08),transparent 60%)}
+  .wrap{max-width:880px;margin:0 auto;padding:28px 20px 70px}
+  header{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+  .logo{width:46px;height:46px;border-radius:13px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:grid;place-items:center;font-size:24px;box-shadow:0 8px 30px rgba(56,189,248,.35)}
+  .brand{font-size:22px;font-weight:800;letter-spacing:.2px}
+  .brand span{background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .privacy{margin-left:auto;font-size:12.5px;color:var(--muted);border:1px solid var(--line);padding:6px 11px;border-radius:99px;background:rgba(18,28,49,.6)}
+  h1{font-size:clamp(30px,5vw,44px);line-height:1.12;font-weight:850;margin:26px 0 10px}
+  h1 em{font-style:normal;background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .sub{color:var(--muted);font-size:17px;max-width:640px}
+  .stats{display:flex;flex-wrap:wrap;gap:10px;margin:22px 0 6px}
+  .stat{border:1px solid var(--line);background:var(--panel);border-radius:12px;padding:10px 14px;font-size:13.5px;color:var(--muted)}
+  .stat b{color:var(--text);font-size:15px}
+  .card{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:18px;padding:22px;margin-top:22px;box-shadow:0 20px 50px rgba(0,0,0,.35)}
+  label{font-weight:700;font-size:15px;display:block;margin-bottom:8px}
+  textarea{width:100%;min-height:150px;background:#0a111f;border:1px solid var(--line);border-radius:12px;color:var(--text);padding:14px;font-size:15.5px;font-family:inherit;resize:vertical}
+  textarea:focus{outline:2px solid var(--accent);outline-offset:1px}
+  .row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:14px}
+  button.check{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#06121f;border:none;font-weight:800;font-size:16px;padding:13px 26px;border-radius:12px;cursor:pointer;transition:transform .12s,box-shadow .12s;box-shadow:0 10px 26px rgba(56,189,248,.3)}
+  button.check:hover{transform:translateY(-1px)}
+  button.ghost{background:transparent;color:var(--muted);border:1px solid var(--line);padding:11px 16px;border-radius:12px;cursor:pointer;font-size:14px}
+  .examples{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+  .examples span{font-size:13px;color:var(--muted);align-self:center}
+  .chip{border:1px solid var(--line);background:#0a111f;color:var(--text);font-size:13px;padding:7px 12px;border-radius:99px;cursor:pointer}
+  .chip:hover{border-color:var(--accent)}
+  #result{display:none}
+  .verdict{display:flex;gap:20px;align-items:center;flex-wrap:wrap}
+  .gauge{--p:0;width:118px;height:118px;border-radius:50%;flex:none;display:grid;place-items:center;background:conic-gradient(var(--c,#888) calc(var(--p)*1%), #1b2946 0);transition:--p .8s}
+  .gauge-in{width:92px;height:92px;border-radius:50%;background:var(--panel);display:grid;place-items:center;text-align:center}
+  .gauge b{font-size:30px;line-height:1}
+  .gauge small{color:var(--muted);font-size:11px;display:block}
+  .headline{font-size:24px;font-weight:800}
+  .level-safe{--c:var(--safe);color:var(--safe)} .level-caution{--c:var(--caution);color:var(--caution)}
+  .level-likely_scam{--c:var(--likely);color:var(--likely)} .level-high_risk{--c:var(--high);color:var(--high)}
+  .flag{border:1px solid var(--line);border-left:4px solid var(--likely);background:#0a111f;border-radius:10px;padding:12px 14px;margin-top:10px}
+  .flag b{font-size:15px} .flag p{color:var(--muted);font-size:14px;margin-top:2px}
+  .flag .pts{float:right;color:var(--likely);font-weight:700;font-size:13px}
+  h3{margin:22px 0 6px;font-size:17px}
+  .advice li{margin:6px 0 6px 20px;color:#dbe6fa;font-size:15px}
+  .safebox{border:1px solid rgba(52,211,153,.4);background:rgba(52,211,153,.07);border-radius:12px;padding:14px 16px;margin-top:14px}
+  .how{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;margin-top:22px}
+  .how .card{margin-top:0;padding:18px}
+  .how h3{margin:0 0 6px} .how p{color:var(--muted);font-size:14.5px}
+  .family{border:1px dashed var(--accent);border-radius:16px;padding:20px;margin-top:26px;background:rgba(56,189,248,.05)}
+  .family h3{margin-top:0}
+  .family li{margin:6px 0 6px 20px;color:#dbe6fa;font-size:15px}
+  footer{color:var(--muted);font-size:13px;margin-top:36px;text-align:center}
+  #history{margin-top:10px} #history .chip{cursor:default}
+  .err{color:var(--high);font-size:14px;margin-top:10px;display:none}
+</style>
+</head>
+<body>
+<div class="orbs"></div>
+<div class="wrap">
+  <header>
+    <div class="logo">🛡️</div>
+    <div class="brand">Scam<span>Shield</span></div>
+    <div class="privacy">🔒 Private — messages are never stored</div>
+  </header>
+
+  <h1>Got a message that feels <em>off</em>?<br>Check it before you tap it.</h1>
+  <p class="sub">Paste a suspicious text, email or DM below. ScamShield explains — in plain English — exactly what looks wrong, and what to do next. Built for you, and for the parents and grandparents scammers target most.</p>
+
+  <div class="stats">
+    <div class="stat"><b>$12.5B</b> lost to fraud in a year (FTC)</div>
+    <div class="stat"><b>57%</b> of adults targeted by a scam in the past year</div>
+    <div class="stat"><b>442%</b> surge in AI voice-clone phishing</div>
+  </div>
+
+  <div class="card">
+    <label for="msg">Paste the suspicious message</label>
+    <textarea id="msg" placeholder="e.g. URGENT: Your bank account will be suspended… (paste the whole message, including any link)"></textarea>
+    <div class="row">
+      <button class="check" id="checkBtn">Check this message →</button>
+      <button class="ghost" id="clearBtn">Clear</button>
+    </div>
+    <div class="err" id="err">Please paste a message first.</div>
+    <div class="examples"><span>Try an example:</span><span id="exampleChips"></span></div>
+    <div id="history"></div>
+  </div>
+
+  <div class="card" id="result">
+    <div class="verdict">
+      <div class="gauge" id="gauge"><div class="gauge-in"><div><b id="scoreNum">0</b><small>/ 100 risk</small></div></div></div>
+      <div><div class="headline" id="headline"></div>
+      <p style="color:var(--muted);max-width:480px">Score = how many known scam patterns this message matches. A real company can still be impersonated perfectly — when in doubt, contact them yourself.</p></div>
+    </div>
+    <div id="flags"></div>
+    <h3>What to do next</h3>
+    <ul class="advice" id="advice"></ul>
+    <div class="row"><button class="ghost" id="copyBtn">📋 Copy this report to share with family</button></div>
+  </div>
+
+  <div class="how">
+    <div class="card"><h3>1 · Paste</h3><p>Any text, email, DM or link — from your phone, a parent's phone, anywhere. No account, no download.</p></div>
+    <div class="card"><h3>2 · See the tricks</h3><p>Urgency, fake brands, gift-card payments, look-alike links — every red flag is named and explained, not just scored.</p></div>
+    <div class="card"><h3>3 · Act safely</h3><p>Clear next steps for that exact message type, plus how to report it so others are protected too.</p></div>
+  </div>
+
+  <div class="family">
+    <h3>👨‍👩‍👧 The 2-minute family safety plan (do this today)</h3>
+    <ul>
+      <li><b>Pick a family code word.</b> If a "family member" calls or texts in a panic asking for money, ask for the code word. AI voice clones can't know it.</li>
+      <li><b>The golden rule:</b> real banks, police and the IRS never ask for gift cards, crypto, or a code they just sent you. Ever.</li>
+      <li><b>Slow down = safe.</b> Every scam needs you in a hurry. A real problem can wait 10 minutes while you call the official number.</li>
+      <li><b>Bookmark this page</b> on your parents' phones — checking takes 20 seconds.</li>
+    </ul>
+  </div>
+
+  <footer>ScamShield v1.0 · Rule-based analysis runs on this server only — nothing you paste is stored, logged or shared.<br>Not a guarantee: if money is involved and something feels wrong, ask a person you trust before acting.</footer>
+</div>
+<script>
+const $ = id => document.getElementById(id);
+let examples = [], lastReport = null;
+
+fetch('/api/examples').then(r=>r.json()).then(d=>{
+  examples = d.examples;
+  $('exampleChips').innerHTML = examples.map((e,i)=>`<button class="chip" data-i="${i}">${e.name}</button>`).join(' ');
+  document.querySelectorAll('#exampleChips .chip').forEach(c=>c.onclick=()=>{ $('msg').value = examples[+c.dataset.i].text; run(); });
+}).catch(()=>{});
+
+function renderHistory(){
+  const h = JSON.parse(localStorage.getItem('ss-history')||'[]');
+  $('history').innerHTML = h.length ? '<span style="font-size:13px;color:var(--muted)">Your recent checks: </span>' + h.map(x=>`<span class="chip">${x.score}/100 · ${x.label}</span>`).join(' ') : '';
+}
+renderHistory();
+
+async function run(){
+  const text = $('msg').value.trim();
+  if(!text){ $('err').style.display='block'; return; }
+  $('err').style.display='none';
+  $('checkBtn').textContent = 'Checking…';
+  try{
+    const r = await fetch('/api/check',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text})});
+    const d = await r.json();
+    lastReport = d;
+    const cls = 'level-' + d.level;
+    $('result').style.display='block';
+    const g = $('gauge'); g.style.setProperty('--p', d.score); g.className = 'gauge ' + cls;
+    $('scoreNum').textContent = d.score;
+    const h = $('headline'); h.textContent = d.headline; h.className = 'headline ' + cls;
+    $('flags').innerHTML = d.flags.length
+      ? '<h3>Why — the red flags found</h3>' + d.flags.map(f=>`<div class="flag"><span class="pts">+${f.points}</span><b>${f.label}</b><p>${f.detail}</p></div>`).join('')
+      : '<div class="safebox">✅ No known scam patterns matched this message. It still pays to open apps directly rather than tapping links in unexpected messages.</div>';
+    $('advice').innerHTML = d.advice.map(a=>`<li>${a}</li>`).join('');
+    const hist = JSON.parse(localStorage.getItem('ss-history')||'[]');
+    hist.unshift({score:d.score,label:d.headline.split('—')[0].trim()});
+    localStorage.setItem('ss-history', JSON.stringify(hist.slice(0,5)));
+    renderHistory();
+    $('result').scrollIntoView({behavior:'smooth',block:'start'});
+  }catch(e){ $('err').textContent='Something went wrong — please try again.'; $('err').style.display='block'; }
+  $('checkBtn').textContent = 'Check this message →';
+}
+$('checkBtn').onclick = run;
+$('clearBtn').onclick = ()=>{ $('msg').value=''; $('result').style.display='none'; };
+$('copyBtn').onclick = ()=>{
+  if(!lastReport) return;
+  const t = `ScamShield report — Risk ${lastReport.score}/100: ${lastReport.headline}\n\nRed flags:\n` +
+    (lastReport.flags.map(f=>`• ${f.label}: ${f.detail}`).join('\n') || '• None found') +
+    `\n\nWhat to do:\n` + lastReport.advice.map(a=>`• ${a}`).join('\n');
+  navigator.clipboard.writeText(t).then(()=>{ $('copyBtn').textContent='✅ Copied — send it to them'; setTimeout(()=>$('copyBtn').textContent='📋 Copy this report to share with family',2500); });
+};
+</script>
+</body>
+</html>
